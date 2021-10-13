@@ -1,41 +1,41 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections;
 using System.Text;
+
 
 namespace Lab1
 {
-    class Student : Person
+    class Student : Person, IDateAndCopy
     {
-        private Person personalData;
         private Education education;
         private int group;
-        private Exam[] exams;
+        private ArrayList tests;
+        private ArrayList exams;
 
-        public Student(Person personalDateValue, Education educationValue, int groupValue, Exam[] examsValue)
+        public Student(Person personalDateValue, Education educationValue, int groupValue, ArrayList examsValue, ArrayList testsValue)
+            : base(personalDateValue)
         {
-            personalData = personalDateValue;
+            education = educationValue;
+            Group = groupValue;
+            exams = new ArrayList();
+            this.AddExams(examsValue);
+            tests = new ArrayList();
+            this.AddTests(testsValue);
+        }
+        public Student() : base()
+        {
+            education = Education.Вachelor;
+            Group = 113;
+            exams = new ArrayList();
+            tests = new ArrayList();
+        }
+        public Student(Person personValue, Education educationValue, int groupValue)
+            : base(personValue)
+        {
             education = educationValue;
             group = groupValue;
-            exams = new Exam[0];
-            this.AddExams(examsValue);
-        }
-        public Student()
-        {
-            personalData = new Person();
-            education = Education.Вachelor;
-            group = 13;
-            exams = new Exam[0];
-        }
-        public Person Person
-        {
-            get
-            {
-                return personalData;
-            }
-            set
-            {
-                personalData = value;
-            }
+            exams = new ArrayList();
+            tests = new ArrayList();
         }
         public Education Education
         {
@@ -56,10 +56,20 @@ namespace Lab1
             }
             set
             {
-                group = value;
+                if (value < 100 || value > 599){
+                    throw new Exception("\nПередано некорректное значение группы!\n");
+                }
+                group = value;   
             }
         }
-        public Exam[] Exams
+        public int Size
+        {
+            get
+            {
+                return this.exams.Count + this.tests.Count;
+            }
+        }
+        public ArrayList Exams
         {
             get
             {
@@ -67,7 +77,8 @@ namespace Lab1
             }
             set
             {
-                exams = value;
+                exams.Clear();
+                exams.AddRange(value);
             }
         }
         public double averageRating
@@ -75,11 +86,9 @@ namespace Lab1
             get
             {
                 double output = 0;
-                for (var i = 0; i < this.exams.Length; i++)
-                {
-                    output += exams[i].Note;
-                }
-                output /= this.exams.Length;
+                foreach (Exam exam in exams)
+                    output += exam.Note;
+                output /= exams.Count;
                 return output;
             }
         }
@@ -95,43 +104,116 @@ namespace Lab1
                 return false;
             }
         }
-        public void AddExams(Exam[] exams)
+
+        public object this[int index]
         {
-            int len = this.exams.Length;
-            Array.Resize(ref this.exams, this.exams.Length + exams.Length);
-            
-            for (int i = 0; i < exams.Length; i++)
+            get
             {
-                this.exams[len + i] = exams[i].DeepCopy() as Exam;
+                try 
+                {
+                    object obj = new object();
+                    if (index < this.exams.Count)
+                    {
+                        obj = this.exams[index];
+                    }
+                    else if (index >= this.exams.Count &&
+                        this.exams.Count - index < this.tests.Count)
+                    {
+                        int i = index - this.exams.Count;
+                        obj = this.tests[i];
+                    }
+                    else
+                    {
+                        throw new Exception("\nПереданный индекс выходит за пределы массивов exams и tests!\n");
+                    }
+                    return obj;
+                }
+                catch (Exception exc)
+                {
+                    Console.WriteLine(exc.Message);
+                    return null;
+                }
             }
+        }
+
+        public object this[int index, int note]
+        {
+            get
+            {
+                try
+                {
+                    if (index < this.exams.Count)
+                    {
+                        Exam e = this.exams[index] as Exam;
+                        if(e.Note >= note)
+                        {
+                            return this.exams[index];
+                        }
+                            
+                    }
+                    else
+                    {
+                        throw new Exception("\nПереданный индекс выходит за пределы массивов exams!\n");
+                    }
+                    return null;
+                }
+                catch (Exception exc)
+                {
+                    Console.WriteLine(exc.Message);
+                    return null;
+                }
+            }
+        }
+
+        public void AddExams( Exam[] exams)
+        {
+            foreach (Exam exam in exams)
+                this.exams.Add(exam.DeepCopy() as Exam);
+        }
+        public void AddExams(ArrayList exams)
+        {
+            foreach (Exam exam in exams)
+                this.exams.Add(exam.DeepCopy() as Exam);
+        }
+        public void AddTests(ArrayList tests)
+        {
+            foreach (Test test in tests)
+                this.tests.Add(test.DeepCopy() as Test);
         }
         public override string ToString()
         {
-            string outExams = "";
-            for (int i = 0; i < this.exams.Length; i++)
-            {
-                outExams += exams[i].ToString() + "\n";
-            }
-            return personalData.ToString() + "\n" +
+            string outTests = "";
+            string outExams = "\n";
+            foreach (Exam exam in exams)
+                outExams += exam.ToString() + "\n";
+            foreach (Test test in tests)
+                outTests += test.ToString() + "\n";
+            return this.Name + " " + this.Surname + " " + this.Date.ToShortDateString() + "\n" +
                     education + "\n" +
                     group + "\n" +
-                    outExams;
+                    outExams + "\n" +
+                    outTests;
         }
-        public virtual string ToShortString()
+        public override string ToShortString()
         {
-            return personalData.ToString() + "\n" +
+            return this.Name + " " + this.Surname + " " + this.Date.ToShortDateString() + "\n" +
                     education + "\n" +
                     group + "\n" +
                     this.averageRating;
         }
-        public virtual Student DeepCopy()
+        public override object DeepCopy()
         {
             Student s = new Student();
-            s.personalData = this.personalData.DeepCopy() as Person;
+            s.Name    = this.Name;
+            s.Surname = this.Surname;
+            s.Date    = this.Date;
             s.education = this.education;
-            s.group = this.group;
-            s.AddExams(this.exams);    
-            return s;
+            s.group     = this.group;
+            s.AddExams(this.exams);
+            s.AddTests(this.tests);
+
+            object obj = s;
+            return obj;
         }
     }
 }

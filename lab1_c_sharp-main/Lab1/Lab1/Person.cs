@@ -17,6 +17,13 @@ namespace Lab1
             birthday = new DateTime(1931, 2, 1);
         }
 
+        public Person(Person p)
+        {
+            this.name = p.name;
+            this.surname = p.surname;
+            this.birthday = p.birthday;
+        }
+
         public Person(string name, string surname, DateTime bd)
         {
             this.name = name;

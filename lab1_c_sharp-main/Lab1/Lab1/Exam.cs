@@ -65,7 +65,7 @@ namespace Lab1
         {
             Exam e = new Exam(this.Lesson, this.note, this.date);
             object obj = e;
-            return e;
+            return obj;
         }
     }
 }

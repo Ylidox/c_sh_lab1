@@ -9,6 +9,29 @@ namespace Lab1
         private string subject;
         private bool isPassed;
 
+        public string Subject
+        {
+            get
+            {
+                return subject;
+            }
+            set
+            {
+                subject = value;
+            }
+        }
+        public bool IsPassed
+        {
+            get
+            {
+                return isPassed;
+            }
+            set
+            {
+                isPassed = value;
+            }
+        }
+
         public Test()
         {
             subject = "Math";
@@ -19,9 +42,18 @@ namespace Lab1
             this.subject = subject;
             this.isPassed = isPassed;
         }
+        public virtual object DeepCopy()
+        {
+            Test t = new Test(Subject, IsPassed);
+            object obj = t;
+            return obj;
+        }
+
         public override string ToString()
         {
-            return this.subject + " " + this.isPassed;
+            string output = subject;
+            output += (isPassed) ? " зачет" : " незачет";
+            return output;
         }
     }
 }
